@@ -24,8 +24,8 @@
 #define FirstYear      "2026"
 #define CurrentYear    GetDateTimeString('yyyy','','')
 
-; Suggested by bovirus: from 2027 onward show a range rather than only the
-; current year, so the copyright reads 2026-2027 and so on.
+; From 2027 onward show a range rather than only the current year
+; so the copyright reads 2026-2027 and so on.
 #if CurrentYear == FirstYear
   #define CopyrightYears FirstYear
 #else
@@ -83,19 +83,19 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopShortcut}"; GroupDescription: "Shortcuts:"
-Name: "pdfcontextmenu"; Description: "{cm:AddOpenWithPDFGeek}"; GroupDescription: "Integration:"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopShortcut}"; GroupDescription: "{cm:Shortcuts}"
+Name: "pdfcontextmenu"; Description: "{cm:AddOpenWithPDFGeek}"; GroupDescription: "{cm:Integrations}"; Flags: unchecked
 
 [Files]
 Source: "{#AppSourceDir}\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\LICENSE";              DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
-Source: "..\README.md";            DestDir: "{app}"; DestName: "README.md";  Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "..\README.md"; DestDir: "{app}"; DestName: "README.md";  Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#AppName}";                 Filename: "{app}\{#AppExeName}"
-Name: "{group}\{#AppName} on the web";      Filename: "{#AppURL}"
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
+Name: "{group}\{cm:AppWebSite}"; Filename: "{#AppURL}"
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}";           Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Registry]
 ; Optional "Open with PDFGeek" verb on .pdf files. Deliberately does NOT change the default
