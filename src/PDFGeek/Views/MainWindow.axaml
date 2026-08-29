@@ -23,16 +23,6 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Margin="20,0,20,18" Spacing="12">
-          <Border Background="#0b0b0d" BorderBrush="#1f1f22" BorderThickness="1"
-                  CornerRadius="10" Padding="12">
-            <StackPanel>
-              <TextBlock Text="Files stay on your PC" FontSize="11" FontWeight="SemiBold"
-                         Foreground="#38bdf8" TextWrapping="Wrap" />
-              <TextBlock Text="Every document is processed locally. No uploads, no accounts, no limits."
-                         FontSize="10" Foreground="#9ca3af" TextWrapping="Wrap" Margin="0,4,0,0" />
-            </StackPanel>
-          </Border>
-
           <StackPanel Spacing="6">
             <Button x:Name="CheckUpdatesButton" Classes="ghost" Content="Check for updates"
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
