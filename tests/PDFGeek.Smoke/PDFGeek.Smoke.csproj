@@ -12,6 +12,11 @@
 
   <ItemGroup>
     <PackageReference Include="PDFsharp" Version="6.1.1" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <!-- Skia needs its native library to decode anything; on a build agent that is not a
+         desktop, nothing else pulls it in. -->
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9"
+                      Condition="!$([MSBuild]::IsOSPlatform('Windows'))" />
   </ItemGroup>
 
   <!--
@@ -21,6 +26,7 @@
   -->
   <ItemGroup>
     <Compile Include="../../src/PDFGeek/Services/PdfOps.cs" Link="Services/PdfOps.cs" />
+    <Compile Include="../../src/PDFGeek/Services/MergeImages.cs" Link="Services/MergeImages.cs" />
     <Compile Include="../../src/PDFGeek/Services/PageRange.cs" Link="Services/PageRange.cs" />
     <Compile Include="../../src/PDFGeek/Services/FontSetup.cs" Link="Services/FontSetup.cs" />
   </ItemGroup>
