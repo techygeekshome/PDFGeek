@@ -15,9 +15,9 @@
     <Product>PDFGeek</Product>
     <Company>TechyGeeksHome</Company>
     <Authors>TechyGeeksHome</Authors>
-    <Version>1.0.3</Version>
-    <AssemblyVersion>1.0.3.0</AssemblyVersion>
-    <FileVersion>1.0.3.0</FileVersion>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <Copyright>Copyright © TechyGeeksHome</Copyright>
     <Description>Free, offline PDF tools for Windows. No limits, no uploads.</Description>
 
@@ -42,6 +42,9 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
     <PackageReference Include="PDFsharp" Version="6.1.1" />
+    <!-- Only for decoding WebP, which PDFsharp cannot read. It already arrives with Avalonia;
+         naming it here so the merge tool does not depend on a transitive package by accident. -->
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
   </ItemGroup>
 
   <ItemGroup>
