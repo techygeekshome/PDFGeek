@@ -77,9 +77,9 @@
 
           <!-- ==================================================== MERGE -->
           <StackPanel x:Name="MergePanel" Spacing="12">
-            <TextBlock Classes="h1" Text="Merge PDFs" />
+            <TextBlock Classes="h1" Text="Merge PDFs and images" />
             <TextBlock Classes="sub"
-                       Text="Combine any number of files into one, in the order you set. Drag files onto the window to add them." />
+                       Text="Combine any number of PDFs, JPGs, PNGs and WebP images into one file, in the order you set. Drag files onto the window to add them." />
 
             <Border Classes="card">
               <StackPanel Spacing="10">
@@ -92,6 +92,22 @@
                   <Button x:Name="MergeRemoveButton" Classes="ghost" Content="Remove" />
                   <Button x:Name="MergeClearButton" Classes="ghost" Content="Clear" />
                 </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="label" Text="Page size" />
+                <ComboBox x:Name="MergeLayoutBox" Width="320" HorizontalAlignment="Left"
+                          SelectedIndex="0">
+                  <ComboBoxItem Content="Every page keeps its own size" />
+                  <ComboBoxItem Content="Force everything to A4 portrait" />
+                  <ComboBoxItem Content="Force everything to A4 landscape" />
+                  <ComboBoxItem Content="Force everything to Letter portrait" />
+                  <ComboBoxItem Content="Force everything to Letter landscape" />
+                </ComboBox>
+                <TextBlock x:Name="MergeLayoutNote" Classes="sub" TextWrapping="Wrap"
+                           Text="Each image becomes a page cut to its own size, and existing PDF pages are copied across untouched." />
               </StackPanel>
             </Border>
 

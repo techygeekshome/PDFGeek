@@ -18,7 +18,7 @@
 
 ---
 
-PDFGeek does the everyday PDF jobs on your own machine, with none of the limits the web tools impose. Merge as many files as you like, split a document into pages or fixed-size chunks, pull pages out or drop them, rotate sideways scans, reorder a document, stamp a watermark across it, and add or remove password protection.
+PDFGeek does the everyday PDF jobs on your own machine, with none of the limits the web tools impose. Merge as many files as you like, images included, split a document into pages or fixed-size chunks, pull pages out or drop them, rotate sideways scans, reorder a document, stamp a watermark across it, and add or remove password protection.
 
 The online alternatives cap you and then ask for money — 25 files per merge, three tasks an hour, a subscription to unlock batch mode. PDFGeek has no caps to lift, because your documents never leave your computer in the first place.
 
@@ -62,7 +62,7 @@ Prefer the portable build if you want to run it from a memory stick or leave no 
 
 ## ✨ What it does
 
-- 🔗 **Merge** any number of PDFs into one, in the order you set — drag them in, reorder, done.
+- 🔗 **Merge** any number of PDFs *and images* into one, in the order you set — drag them in, reorder, done. JPG, PNG and WebP go in alongside the PDFs, either keeping their own size or forced to A4 or Letter.
 - ✂️ **Split** a document into one file per page, or into fixed-size chunks.
 - 📄 **Extract or remove pages** using print-dialog page ranges (`1-3, 5, 9-`).
 - 🔄 **Rotate** sideways scans by 90°, 180° or 270°, on selected pages or the whole document.

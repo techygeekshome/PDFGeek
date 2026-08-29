@@ -82,6 +82,40 @@ string MakePdf(string name, int pages)
     return path;
 }
 
+// Builds a real image on disk with Skia, so the merge tests exercise the same decode path the
+// app uses rather than a fixture checked into the repository.
+string MakeImage(string name, int width, int height, SkiaSharp.SKEncodedImageFormat format, bool transparent = false)
+{
+    var path = Path.Combine(work, name);
+    // Left at Skia's default surface type. Forcing Rgb888x here made the JPEG encoder refuse
+    // outright, and an opaque clear gives the same all-255 alpha channel anyway.
+    using var bitmap = new SkiaSharp.SKBitmap(width, height);
+
+    using (var canvas = new SkiaSharp.SKCanvas(bitmap))
+    {
+        canvas.Clear(transparent ? SkiaSharp.SKColors.Transparent : SkiaSharp.SKColors.CornflowerBlue);
+        using var paint = new SkiaSharp.SKPaint { Color = SkiaSharp.SKColors.OrangeRed, IsAntialias = true };
+        canvas.DrawCircle(width / 2f, height / 2f, Math.Min(width, height) / 3f, paint);
+    }
+
+    using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+    using var data = image.Encode(format, 90)
+        ?? throw new Exception($"Skia could not encode {format}.");
+
+    using var file = File.Create(path);
+    data.SaveTo(file);
+    return path;
+}
+
+static (double Width, double Height) PageSizeOf(string path, int pageIndex)
+{
+    using var doc = PdfReader.Open(path, PdfDocumentOpenMode.Import);
+    var page = doc.Pages[pageIndex];
+    return (page.Width.Point, page.Height.Point);
+}
+
+static bool Near(double a, double b, double tolerance = 1.0) => Math.Abs(a - b) <= tolerance;
+
 Console.WriteLine("PDFGeek smoke test");
 Console.WriteLine("==================");
 Console.WriteLine($"Working in {work}");
@@ -120,6 +154,139 @@ Check("merge 5 + 3", () =>
     Expect(pages == 8, $"expected 8, got {pages}");
     Expect(PageCountOf(merged) == 8, "reopened file has the wrong page count");
     return "8 pages";
+});
+
+// ---------------------------------------------------------------- merge with images
+Console.WriteLine();
+Console.WriteLine("Merging images in with PDFs");
+
+var png = MakeImage("shape.png", 600, 400, SkiaSharp.SKEncodedImageFormat.Png);
+var jpg = MakeImage("photo.jpg", 800, 800, SkiaSharp.SKEncodedImageFormat.Jpeg);
+var webp = MakeImage("picture.webp", 500, 250, SkiaSharp.SKEncodedImageFormat.Webp);
+var webpAlpha = MakeImage("cutout.webp", 300, 300, SkiaSharp.SKEncodedImageFormat.Webp, transparent: true);
+
+Check("what counts as mergeable", () =>
+{
+    Expect(MergeImages.IsImage(png) && MergeImages.IsImage(jpg) && MergeImages.IsImage(webp),
+        "png, jpg and webp should all be images");
+    Expect(MergeImages.IsPdf(a), "a .pdf should be a PDF");
+    Expect(!MergeImages.IsSupported(Path.Combine(work, "notes.txt")), ".txt should not be accepted");
+    return "png, jpg, webp, pdf in; txt out";
+});
+
+Check("an image becomes a page of its own size", () =>
+{
+    var outPath = Path.Combine(work, "image-native.pdf");
+    var pages = PdfOps.Merge(new[] { png }, outPath, PdfOps.MergeLayout.Native);
+    Expect(pages == 1, $"expected 1 page, got {pages}");
+
+    // 600x400 pixels with no DPI recorded is 96 DPI, so 450x300 points.
+    var (w, h) = PageSizeOf(outPath, 0);
+    Expect(Near(w, 450) && Near(h, 300), $"expected 450x300pt, got {w:0.#}x{h:0.#}");
+    return $"{w:0}x{h:0}pt";
+});
+
+Check("PDFs and images interleave in the order given", () =>
+{
+    var outPath = Path.Combine(work, "mixed-native.pdf");
+    var pages = PdfOps.Merge(new[] { a, png, b, jpg }, outPath, PdfOps.MergeLayout.Native);
+    Expect(pages == 10, $"expected 5 + 1 + 3 + 1 = 10, got {pages}");
+
+    // Page 6 is the PNG, sitting between alpha and bravo; page 10 is the JPEG at the end.
+    var (w6, h6) = PageSizeOf(outPath, 5);
+    Expect(Near(w6, 450) && Near(h6, 300), $"page 6 should be the PNG, got {w6:0.#}x{h6:0.#}");
+
+    // The JPEG carries no density, so PDFsharp reports 72 DPI and 800 pixels is 800 points.
+    var (w10, h10) = PageSizeOf(outPath, 9);
+    Expect(Near(w10, 800) && Near(h10, 800), $"page 10 should be the JPEG, got {w10:0.#}x{h10:0.#}");
+    return "10 pages, images in position";
+});
+
+Check("forcing A4 portrait resizes every page", () =>
+{
+    var outPath = Path.Combine(work, "mixed-a4.pdf");
+    var pages = PdfOps.Merge(new[] { a, png, jpg }, outPath, PdfOps.MergeLayout.A4Portrait);
+    Expect(pages == 7, $"expected 5 + 1 + 1 = 7, got {pages}");
+
+    using var doc = PdfReader.Open(outPath, PdfDocumentOpenMode.Import);
+    for (var i = 0; i < doc.PageCount; i++)
+    {
+        var page = doc.Pages[i];
+        Expect(Near(page.Width.Point, 595.28) && Near(page.Height.Point, 841.89),
+            $"page {i + 1} is {page.Width.Point:0.#}x{page.Height.Point:0.#}, not A4 portrait");
+    }
+
+    return "7 A4 pages";
+});
+
+Check("forcing A4 landscape resizes every page", () =>
+{
+    var outPath = Path.Combine(work, "mixed-a4-landscape.pdf");
+    PdfOps.Merge(new[] { png, a }, outPath, PdfOps.MergeLayout.A4Landscape);
+    var (w, h) = PageSizeOf(outPath, 0);
+    Expect(Near(w, 841.89) && Near(h, 595.28), $"expected landscape A4, got {w:0.#}x{h:0.#}");
+    return "landscape";
+});
+
+Check("WebP is decoded, opaque and transparent alike", () =>
+{
+    var outPath = Path.Combine(work, "webp.pdf");
+    var pages = PdfOps.Merge(new[] { webp, webpAlpha }, outPath, PdfOps.MergeLayout.Native);
+    Expect(pages == 2, $"expected 2 pages, got {pages}");
+
+    // WebP records no resolution, so both go in at the assumed 96 DPI - and crucially at the
+    // same DPI whether or not they have an alpha channel, even though one is re-encoded as JPEG
+    // and the other as PNG.
+    var (w1, h1) = PageSizeOf(outPath, 0);
+    Expect(Near(w1, 375) && Near(h1, 187.5), $"500x250 WebP should be 375x187.5pt, got {w1:0.#}x{h1:0.#}");
+
+    var (w2, h2) = PageSizeOf(outPath, 1);
+    Expect(Near(w2, 225) && Near(h2, 225), $"300x300 WebP should be 225x225pt, got {w2:0.#}x{h2:0.#}");
+    return "both decoded, both at 96 DPI";
+});
+
+Check("an unsupported file is refused before anything is written", () =>
+{
+    var txt = Path.Combine(work, "notes.txt");
+    File.WriteAllText(txt, "not a document");
+    var outPath = Path.Combine(work, "refused.pdf");
+    try
+    {
+        PdfOps.Merge(new[] { a, txt }, outPath);
+        throw new Exception("should have refused a .txt");
+    }
+    catch (InvalidOperationException)
+    {
+        Expect(!File.Exists(outPath), "nothing should have been written");
+        return "refused as expected";
+    }
+});
+
+Check("page size honours DPI, and never exceeds what a PDF allows", () =>
+{
+    var (w1, h1) = MergeImages.PointSize(600, 400, 96, 96);
+    Expect(Near(w1, 450) && Near(h1, 300), $"96 DPI: expected 450x300, got {w1:0.#}x{h1:0.#}");
+
+    var (w2, h2) = MergeImages.PointSize(2480, 3508, 300, 300);
+    Expect(Near(w2, 595, 2) && Near(h2, 842, 2), $"a 300 DPI A4 scan should come back A4, got {w2:0.#}x{h2:0.#}");
+
+    var (w3, h3) = MergeImages.PointSize(600, 400, 0, -5);
+    Expect(Near(w3, 450) && Near(h3, 300), $"nonsense DPI should fall back to 96, got {w3:0.#}x{h3:0.#}");
+
+    var (w4, h4) = MergeImages.PointSize(100000, 50000, 96, 96);
+    Expect(w4 <= 14400.5 && h4 <= 14400.5, $"should be clamped to the PDF limit, got {w4:0.#}x{h4:0.#}");
+    Expect(Near(w4 / h4, 2.0, 0.01), "clamping should keep the proportions");
+    return "96 DPI, 300 DPI scan, junk, and the clamp";
+});
+
+Check("merging images only still works", () =>
+{
+    var outPath = Path.Combine(work, "images-only.pdf");
+    var pages = PdfOps.Merge(new[] { png, jpg, webp }, outPath, PdfOps.MergeLayout.LetterPortrait);
+    Expect(pages == 3, $"expected 3 pages, got {pages}");
+    var (w, h) = PageSizeOf(outPath, 2);
+    Expect(Near(w, 612) && Near(h, 792), $"expected Letter portrait, got {w:0.#}x{h:0.#}");
+    return "3 Letter pages";
 });
 
 // ---------------------------------------------------------------- split

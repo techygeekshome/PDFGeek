@@ -45,26 +45,169 @@ public static class PdfOps
 
     // ---------------------------------------------------------------- merge
 
-    public static int Merge(IReadOnlyList<string> inputs, string outputPath)
+    /// <summary>
+    /// What the merged document does about page size.
+    /// </summary>
+    public enum MergeLayout
     {
-        if (inputs.Count == 0) throw new InvalidOperationException("Add at least one PDF to merge.");
+        /// <summary>
+        /// Every page keeps the size it already has, and each image becomes a page cut to its own
+        /// size. Existing PDF pages are copied across untouched, so links, annotations and form
+        /// fields survive.
+        /// </summary>
+        Native,
+
+        A4Portrait,
+        A4Landscape,
+        LetterPortrait,
+        LetterLandscape
+    }
+
+    public static int Merge(IReadOnlyList<string> inputs, string outputPath) =>
+        Merge(inputs, outputPath, MergeLayout.Native);
+
+    /// <summary>
+    /// Merges PDFs and images into one document, in the order given.
+    ///
+    /// <para>
+    /// <see cref="MergeLayout.Native"/> copies PDF pages across as they are and gives each image
+    /// a page cut to its own size, so nothing is resampled and nothing is lost.
+    /// </para>
+    ///
+    /// <para>
+    /// Any of the fixed sizes redraws <em>every</em> page onto a new page of that size, scaled to
+    /// fit and centred, leaving margins where the shape does not match. That is the only way to
+    /// force one size across a mix of sources, but it is a redraw: annotations, links and form
+    /// fields on the incoming PDF pages do not come with it. Callers should say so before they
+    /// use it.
+    /// </para>
+    /// </summary>
+    public static int Merge(IReadOnlyList<string> inputs, string outputPath, MergeLayout layout)
+    {
+        if (inputs.Count == 0) throw new InvalidOperationException("Add at least one file to merge.");
+
+        foreach (var input in inputs)
+            if (!MergeImages.IsSupported(input))
+                throw new InvalidOperationException(
+                    $"{Path.GetFileName(input)} is not a PDF or a supported image.");
 
         using var output = new PdfDocument();
         output.Info.Title = Path.GetFileNameWithoutExtension(outputPath);
         output.Info.Creator = "PDFGeek";
 
+        // Both the image handles and the XPdfForms read from their sources lazily, as the file is
+        // written, so everything opened here has to stay open until after Save.
+        var open = new List<IDisposable>();
+        try
+        {
+            if (layout == MergeLayout.Native)
+                MergeNative(inputs, output, open);
+            else
+                MergeFixed(inputs, output, FixedSize(layout), open);
+
+            // PDFsharp seals a document on Save, so anything we want to report has to be read first.
+            var pageCount = output.PageCount;
+            output.Save(outputPath);
+            return pageCount;
+        }
+        finally
+        {
+            foreach (var item in open) item.Dispose();
+        }
+    }
+
+    private static void MergeNative(IReadOnlyList<string> inputs, PdfDocument output, List<IDisposable> open)
+    {
         foreach (var input in inputs)
         {
-            using var source = PdfReader.Open(input, PdfDocumentOpenMode.Import);
-            for (var i = 0; i < source.PageCount; i++)
-                output.AddPage(source.Pages[i]);
+            if (MergeImages.IsPdf(input))
+            {
+                using var source = PdfReader.Open(input, PdfDocumentOpenMode.Import);
+                for (var i = 0; i < source.PageCount; i++)
+                    output.AddPage(source.Pages[i]);
+                continue;
+            }
+
+            var handle = MergeImages.Open(input);
+            open.Add(handle);
+
+            // MergeImages works the size out from the pixel dimensions and the file's own DPI, so
+            // a 300 DPI scan lands at its real physical size rather than at four times it.
+            var page = output.AddPage();
+            page.Width = XUnit.FromPoint(handle.PointWidth);
+            page.Height = XUnit.FromPoint(handle.PointHeight);
+
+            using var gfx = XGraphics.FromPdfPage(page);
+            gfx.DrawImage(handle.Image, 0, 0, page.Width.Point, page.Height.Point);
+        }
+    }
+
+    private static void MergeFixed(
+        IReadOnlyList<string> inputs, PdfDocument output, XSize size, List<IDisposable> open)
+    {
+        foreach (var input in inputs)
+        {
+            if (MergeImages.IsPdf(input))
+            {
+                var form = XPdfForm.FromFile(input);
+                open.Add(form);
+
+                for (var i = 1; i <= form.PageCount; i++)
+                {
+                    form.PageNumber = i;
+                    DrawFitted(output, size, form, form.PointWidth, form.PointHeight);
+                }
+
+                continue;
+            }
+
+            var handle = MergeImages.Open(input);
+            open.Add(handle);
+            DrawFitted(output, size, handle.Image, handle.PointWidth, handle.PointHeight);
+        }
+    }
+
+    /// <summary>
+    /// Adds one page of the given size and draws the content scaled to fit inside it, keeping its
+    /// proportions and centring what is left over. Never enlarges beyond the page - a shape that
+    /// does not match simply gets margins.
+    /// </summary>
+    private static void DrawFitted(PdfDocument output, XSize size, XImage content, double width, double height)
+    {
+        var page = output.AddPage();
+        page.Width = XUnit.FromPoint(size.Width);
+        page.Height = XUnit.FromPoint(size.Height);
+
+        using var gfx = XGraphics.FromPdfPage(page);
+
+        if (width <= 0 || height <= 0)
+        {
+            // Nothing sensible to scale by. Fill the page rather than dividing by zero.
+            gfx.DrawImage(content, 0, 0, size.Width, size.Height);
+            return;
         }
 
-        // PDFsharp seals a document on Save, so anything we want to report has to be read first.
-        var pageCount = output.PageCount;
-        output.Save(outputPath);
-        return pageCount;
+        var scale = Math.Min(size.Width / width, size.Height / height);
+        var drawnWidth = width * scale;
+        var drawnHeight = height * scale;
+
+        gfx.DrawImage(
+            content,
+            (size.Width - drawnWidth) / 2,
+            (size.Height - drawnHeight) / 2,
+            drawnWidth,
+            drawnHeight);
     }
+
+    /// <summary>Page sizes in points. A4 is 210x297 mm, Letter 8.5x11 in.</summary>
+    private static XSize FixedSize(MergeLayout layout) => layout switch
+    {
+        MergeLayout.A4Portrait => new XSize(595.28, 841.89),
+        MergeLayout.A4Landscape => new XSize(841.89, 595.28),
+        MergeLayout.LetterPortrait => new XSize(612, 792),
+        MergeLayout.LetterLandscape => new XSize(792, 612),
+        _ => throw new ArgumentOutOfRangeException(nameof(layout), layout, "Not a fixed page size.")
+    };
 
     // ---------------------------------------------------------------- split
 
