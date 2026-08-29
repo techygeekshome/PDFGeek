@@ -20,7 +20,12 @@ public partial class MainWindow : Window
     {
         public MergeItem(string path) => Path = path;
         public string Path { get; }
-        public override string ToString() => System.IO.Path.GetFileName(Path);
+
+        // The list mixes PDFs and images now, so it has to say which is which - the order is the
+        // whole point of this tool and a filename alone does not always make the type obvious.
+        public override string ToString() => MergeImages.IsImage(Path)
+            ? System.IO.Path.GetFileName(Path) + "   (image)"
+            : System.IO.Path.GetFileName(Path);
     }
 
     private readonly ObservableCollection<MergeItem> _mergeItems = new();
@@ -42,6 +47,8 @@ public partial class MainWindow : Window
         MergeUpButton.Click += (_, _) => MoveMergeItem(-1);
         MergeDownButton.Click += (_, _) => MoveMergeItem(+1);
         MergeRunButton.Click += async (_, _) => await RunMergeAsync();
+        MergeLayoutBox.SelectionChanged += (_, _) => UpdateMergeLayoutNote();
+        UpdateMergeLayoutNote();
 
         // Split
         SplitBrowseButton.Click += async (_, _) => await PickIntoAsync(SplitInput);
@@ -295,22 +302,26 @@ public partial class MainWindow : Window
         var dropped = e.Data.GetFiles();
         if (dropped is null) return;
 
-        var paths = dropped
+        var local = dropped
             .Select(f => f.TryGetLocalPath())
-            .Where(p => !string.IsNullOrEmpty(p) &&
-                        p!.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            .Where(p => !string.IsNullOrEmpty(p))
             .Select(p => p!)
             .ToList();
 
-        if (paths.Count == 0) return;
-
-        // Dropping onto the merge tool builds the list; every other tool takes one file.
+        // Dropping onto the merge tool builds the list, and merge is the one tool that takes
+        // images as well; every other tool takes a single PDF.
         if (ToolList.SelectedIndex == 0)
         {
-            foreach (var path in paths) _mergeItems.Add(new MergeItem(path));
-            Status($"Added {paths.Count} file{(paths.Count == 1 ? "" : "s")}.");
+            var accepted = local.Where(MergeImages.IsSupported).ToList();
+            if (accepted.Count == 0) return;
+
+            foreach (var path in accepted) _mergeItems.Add(new MergeItem(path));
+            Status($"Added {accepted.Count} file{(accepted.Count == 1 ? "" : "s")}.");
             return;
         }
+
+        var paths = local.Where(MergeImages.IsPdf).ToList();
+        if (paths.Count == 0) return;
 
         var target = ToolList.SelectedIndex switch
         {
@@ -331,10 +342,50 @@ public partial class MainWindow : Window
 
     private async Task AddMergeFilesAsync()
     {
-        var picked = await PickPdfsAsync(true);
+        var picked = await PickMergeFilesAsync();
         foreach (var path in picked) _mergeItems.Add(new MergeItem(path));
         if (picked.Count > 0)
             Status($"Added {picked.Count} file{(picked.Count == 1 ? "" : "s")}.");
+    }
+
+    /// <summary>
+    /// The merge picker takes images as well as PDFs. "PDFs and images" is listed first so it is
+    /// the default, with the narrower filters underneath for anyone who wants them.
+    /// </summary>
+    private async Task<IReadOnlyList<string>> PickMergeFilesAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Choose PDFs and images",
+            AllowMultiple = true,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("PDFs and images")
+                {
+                    Patterns = new[] { "*.pdf", "*.png", "*.jpg", "*.jpeg", "*.webp" }
+                },
+                new FilePickerFileType("PDF documents") { Patterns = new[] { "*.pdf" } },
+                new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.webp" } }
+            }
+        });
+
+        return files.Select(f => f.TryGetLocalPath())
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Select(p => p!)
+                    .ToList();
+    }
+
+    /// <summary>
+    /// The note under the page-size box. Forcing a size redraws every page, which loses links and
+    /// form fields on the incoming PDFs - that is a real cost and the user should see it before
+    /// pressing Merge, not discover it afterwards.
+    /// </summary>
+    private void UpdateMergeLayoutNote()
+    {
+        MergeLayoutNote.Text = MergeLayoutBox.SelectedIndex <= 0
+            ? "Each image becomes a page cut to its own size, and existing PDF pages are copied across untouched."
+            : "Every page is redrawn at that size, scaled to fit and centred, so pages that are a different shape get margins. "
+              + "Redrawing means links, annotations and form fields on the PDFs you add will not survive.";
     }
 
     private void RemoveSelectedMergeItem()
@@ -354,16 +405,30 @@ public partial class MainWindow : Window
 
     private async Task RunMergeAsync()
     {
-        if (_mergeItems.Count < 2) { Status("Add at least two PDFs to merge."); return; }
+        if (_mergeItems.Count < 2) { Status("Add at least two files to merge."); return; }
 
         var output = await PickSaveAsync("merged.pdf");
         if (output is null) return;
 
         var inputs = _mergeItems.Select(i => i.Path).ToList();
+        var layout = MergeLayoutBox.SelectedIndex switch
+        {
+            1 => PdfOps.MergeLayout.A4Portrait,
+            2 => PdfOps.MergeLayout.A4Landscape,
+            3 => PdfOps.MergeLayout.LetterPortrait,
+            4 => PdfOps.MergeLayout.LetterLandscape,
+            _ => PdfOps.MergeLayout.Native
+        };
+
+        var images = inputs.Count(MergeImages.IsImage);
+
         await RunAsync("Merging…", () =>
         {
-            var pages = PdfOps.Merge(inputs, output);
-            return Task.FromResult(($"Merged {inputs.Count} files into {pages} pages — {Path.GetFileName(output)}", output));
+            var pages = PdfOps.Merge(inputs, output, layout);
+            var what = images == 0
+                ? $"{inputs.Count} files"
+                : $"{inputs.Count - images} PDF{(inputs.Count - images == 1 ? "" : "s")} and {images} image{(images == 1 ? "" : "s")}";
+            return Task.FromResult(($"Merged {what} into {pages} pages — {Path.GetFileName(output)}", output));
         });
     }
 
