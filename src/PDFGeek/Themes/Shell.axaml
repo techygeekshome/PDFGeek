@@ -1,0 +1,161 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Application.Styles is built before Application.Resources, so a StaticResource lookup in
+    here cannot see the app-level dictionary. Merge the palette in locally as well; it is the
+    same file, so there is still exactly one definition of every token.
+  -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://PDFGeek/Themes/Dark.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!--
+    These styles used to sit inline in App.axaml on a second, hardcoded palette - the older
+    near-black/sky-blue set (#0b0b0d, #111113, #1f1f22, #38bdf8). PDFGeek was the last app in
+    the range still carrying it. Same rules, now reading the house tokens, so a change to
+    Dark.axaml lands here too.
+
+    The class names are PDFGeek's existing ones and are deliberately unchanged - renaming them
+    would be churn with no visual result. Converging the class vocabulary across the range is a
+    separate pass.
+  -->
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{StaticResource Navy}" />
+    <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+  </Style>
+
+  <!-- The one primary action per screen -->
+  <Style Selector="Button.accent">
+    <Setter Property="Background" Value="{StaticResource Blue}" />
+    <Setter Property="Foreground" Value="{StaticResource Txt}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="18,10" />
+    <Setter Property="CornerRadius" Value="7" />
+  </Style>
+  <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource BlueHover}" />
+    <Setter Property="TextBlock.Foreground" Value="{StaticResource Txt}" />
+  </Style>
+  <Style Selector="Button.accent:disabled /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource ButtonBg}" />
+    <Setter Property="TextBlock.Foreground" Value="{StaticResource Txt4}" />
+  </Style>
+
+  <!-- Secondary button -->
+  <Style Selector="Button.ghost">
+    <Setter Property="Background" Value="{StaticResource ButtonBg}" />
+    <Setter Property="Foreground" Value="{StaticResource Txt2}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="14,8" />
+    <Setter Property="CornerRadius" Value="7" />
+  </Style>
+  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PanelHover}" />
+  </Style>
+
+  <!-- Tool list down the left-hand side -->
+  <Style Selector="ListBox.tools ListBoxItem">
+    <Setter Property="Padding" Value="12,9" />
+    <Setter Property="CornerRadius" Value="7" />
+    <Setter Property="Foreground" Value="{StaticResource Txt2}" />
+  </Style>
+  <Style Selector="ListBox.tools ListBoxItem:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource Selected}" />
+    <Setter Property="TextBlock.Foreground" Value="{StaticResource Txt}" />
+    <Setter Property="TextBlock.FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="ListBox.tools ListBoxItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PanelHover}" />
+    <Setter Property="TextBlock.Foreground" Value="{StaticResource Txt}" />
+  </Style>
+
+  <!-- The small text links under the sidebar -->
+  <Style Selector="Button.sidelink">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{StaticResource Txt3}" />
+    <Setter Property="Padding" Value="0,3" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="Button.sidelink:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="TextBlock.Foreground" Value="{StaticResource BlueLight}" />
+  </Style>
+
+  <!-- Type -->
+  <Style Selector="TextBlock.h1">
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="Foreground" Value="{StaticResource Txt}" />
+  </Style>
+  <Style Selector="TextBlock.sub">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{StaticResource Txt3}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="TextBlock.label">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{StaticResource Txt3}" />
+    <Setter Property="Margin" Value="0,10,0,4" />
+  </Style>
+
+  <!-- Cards. 7px, not the 16px the old palette used. -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{StaticResource Panel}" />
+    <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="7" />
+    <Setter Property="Padding" Value="20" />
+  </Style>
+
+  <!-- Inputs -->
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="{StaticResource ControlBg}" />
+    <Setter Property="Foreground" Value="{StaticResource Txt}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="7" />
+    <Setter Property="Padding" Value="10,8" />
+  </Style>
+  <Style Selector="ComboBox">
+    <Setter Property="Background" Value="{StaticResource ControlBg}" />
+    <Setter Property="Foreground" Value="{StaticResource Txt}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="7" />
+  </Style>
+  <Style Selector="CheckBox">
+    <Setter Property="Foreground" Value="{StaticResource Txt2}" />
+  </Style>
+
+  <!-- Default button, for anything not explicitly classed -->
+  <Style Selector="Button">
+    <Setter Property="Background" Value="{StaticResource ButtonBg}" />
+    <Setter Property="Foreground" Value="{StaticResource Txt2}" />
+    <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="7" />
+    <Setter Property="Padding" Value="12,7" />
+  </Style>
+  <Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PanelHover}" />
+  </Style>
+
+  <Style Selector="ListBox">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ScrollViewer">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+</Styles>

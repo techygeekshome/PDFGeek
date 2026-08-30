@@ -11,14 +11,14 @@
   <Grid ColumnDefinitions="220,*">
 
     <!-- ============================ sidebar ============================ -->
-    <Border Grid.Column="0" Background="#111113" BorderBrush="#1f1f22" BorderThickness="0,0,1,0">
+    <Border Grid.Column="0" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="0,0,1,0">
       <DockPanel LastChildFill="True">
 
         <StackPanel DockPanel.Dock="Top" Margin="20,24,20,18" Orientation="Horizontal" Spacing="10">
           <Image Source="/Assets/pdfgeek.png" Width="38" Height="38" VerticalAlignment="Center" />
           <StackPanel VerticalAlignment="Center">
-            <TextBlock Text="PDFGeek" FontSize="20" FontWeight="Bold" Foreground="#e5e7eb" />
-            <TextBlock Text="by TechyGeeksHome" FontSize="10" Foreground="#38bdf8" Margin="0,1,0,0" />
+            <TextBlock Text="PDFGeek" FontSize="20" FontWeight="Bold" Foreground="{StaticResource Txt}" />
+            <TextBlock Text="by TechyGeeksHome" FontSize="10" Foreground="{StaticResource BlueLight}" Margin="0,1,0,0" />
           </StackPanel>
         </StackPanel>
 
@@ -31,7 +31,7 @@
                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     FontSize="11" Padding="10,7" />
             <TextBlock x:Name="VersionText" Text="v1.0.0" FontSize="10"
-                       Foreground="#6b7280" HorizontalAlignment="Center" Margin="0,2,0,0" />
+                       Foreground="{StaticResource Txt4}" HorizontalAlignment="Center" Margin="0,2,0,0" />
           </StackPanel>
         </StackPanel>
 
@@ -51,11 +51,11 @@
     <DockPanel Grid.Column="1" LastChildFill="True">
 
       <!-- status bar -->
-      <Border DockPanel.Dock="Bottom" Background="#111113" BorderBrush="#1f1f22"
+      <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
               BorderThickness="0,1,0,0" Padding="20,10">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock x:Name="StatusText" Grid.Column="0" Text="Ready."
-                     Foreground="#9ca3af" FontSize="12" VerticalAlignment="Center"
+                     Foreground="{StaticResource Txt3}" FontSize="12" VerticalAlignment="Center"
                      TextTrimming="CharacterEllipsis" />
           <Button x:Name="OpenOutputButton" Grid.Column="1" Classes="ghost"
                   Content="Show last result" IsEnabled="False" FontSize="11" Padding="10,5" />
@@ -73,8 +73,8 @@
 
             <Border Classes="card">
               <StackPanel Spacing="10">
-                <ListBox x:Name="MergeList" Height="230" Background="#0b0b0d"
-                         BorderBrush="#1f1f22" BorderThickness="1" />
+                <ListBox x:Name="MergeList" Height="230" Background="{StaticResource ControlBg}"
+                         BorderBrush="{StaticResource Line}" BorderThickness="1" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <Button x:Name="MergeAddButton" Classes="ghost" Content="Add files" />
                   <Button x:Name="MergeUpButton" Classes="ghost" Content="Move up" />
@@ -237,7 +237,7 @@
                         TickFrequency="5" IsSnapToTickEnabled="True" />
 
                 <CheckBox x:Name="WatermarkDiagonal" Content="Diagonal" IsChecked="True"
-                          Foreground="#e5e7eb" Margin="0,6,0,0" />
+                          Foreground="{StaticResource Txt}" Margin="0,6,0,0" />
               </StackPanel>
             </Border>
 
@@ -272,9 +272,9 @@
 
                 <StackPanel x:Name="PasswordPermissions" Spacing="4" Margin="0,10,0,0">
                   <CheckBox x:Name="AllowPrinting" Content="Allow printing" IsChecked="True"
-                            Foreground="#e5e7eb" />
+                            Foreground="{StaticResource Txt}" />
                   <CheckBox x:Name="AllowCopying" Content="Allow copying text"
-                            Foreground="#e5e7eb" />
+                            Foreground="{StaticResource Txt}" />
                 </StackPanel>
               </StackPanel>
             </Border>
