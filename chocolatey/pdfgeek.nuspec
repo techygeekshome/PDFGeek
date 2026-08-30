@@ -2,14 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>pdfgeek</id>
-    <version>1.0.1</version>
+    <version>1.1.1</version>
     <title>PDFGeek</title>
     <authors>TechyGeeksHome</authors>
     <owners>techygeekshome</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">GPL-3.0-or-later</license>
     <projectUrl>https://techygeekshome.info/pdfgeek/</projectUrl>
-    <iconUrl>https://cdn.jsdelivr.net/gh/techygeekshome/PDFGeek@d086769941855dfa4d86f54a02d261c5b998fd19/icons/pdfgeek.png</iconUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/techygeekshome/PDFGeek@9dfeb43e4b9bd4a1c60096abd42759686245036b/icons/pdfgeek-256.png</iconUrl>
     <description>PDFGeek does the PDF jobs the online tools charge for, entirely on your own machine.
 Nothing is uploaded, there are no file-count caps and there is no hourly throttle.
 
@@ -27,9 +27,9 @@ press the button. Free at home and at work, with no Pro tier, no adverts and no 
 
 Open source under GPL-3.0. The .NET 8 runtime is bundled, so there is nothing to install first.</description>
     <summary>Free offline PDF toolkit for Windows - merge, split, extract, rotate, watermark, lock</summary>
-    <releaseNotes>https://github.com/techygeekshome/PDFGeek/releases/tag/v1.0.1</releaseNotes>
+    <releaseNotes>https://github.com/techygeekshome/PDFGeek/releases/tag/v1.1.1</releaseNotes>
     <copyright>Copyright (c) 2026 TechyGeeksHome</copyright>
-    <tags>pdf pdf-editor merge split watermark encryption offline windows foss admin</tags>
+    <tags>pdf pdf-editor merge split watermark encryption offline windows foss</tags>
     <projectSourceUrl>https://github.com/techygeekshome/PDFGeek</projectSourceUrl>
     <packageSourceUrl>https://github.com/techygeekshome/PDFGeek</packageSourceUrl>
     <docsUrl>https://techygeekshome.info/pdfgeek/</docsUrl>
