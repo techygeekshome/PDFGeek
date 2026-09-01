@@ -56,8 +56,8 @@ UsePreviousLanguage=no
 LanguageDetectionMethod=uilanguage
 WizardStyle=modern
 
-UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName}
+UninstallDisplayIcon={app}\{#AppExeName}
 
 LicenseFile=..\LICENSE.rtf
 
