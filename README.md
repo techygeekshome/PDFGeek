@@ -26,7 +26,7 @@ No installer bloat, no bundled offers, no telemetry. 100% free, no Pro tier, no 
 
 ## 🎬 See it in action
 
-[![PDFGeek demo video](https://img.youtube.com/vi/rRZ8JNHRGXY/maxresdefault.jpg)](https://www.youtube.com/watch?v=rRZ8JNHRGXY)
+[![PDFGeek demo video](https://img.youtube.com/vi/LvTLJK7S1ww/maxresdefault.jpg)](https://www.youtube.com/watch?v=LvTLJK7S1ww)
 
 A full tour of every tool, in under a minute.
 
