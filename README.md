@@ -125,7 +125,7 @@ The PDFGeek name, logo and TechyGeeksHome branding are not covered by that licen
 
 Built with [Avalonia](https://avaloniaui.net/) (MIT) and [PDFsharp](https://github.com/empira/PDFsharp) (MIT).
 
-© 2026 TechyGeeksHome | Andrew Armstrong.
+© 2026 TechyGeeksHome.
 
 ---
 
