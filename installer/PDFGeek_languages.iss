@@ -8,6 +8,7 @@ english.AddOpenWithPDFGeek=Add 'Open with PDFGeek' to the right-click menu for P
 english.Shortcuts=Shortcuts:
 english.Integrations=Integrations:
 english.AppWebSite={#AppName} on the web
+english.LaunchProgram=Run {#AppName}
 
 italian.CreateDesktopShortcut=Crea collegamento programma sul &desktop
 italian.AddOpenWithPDFGeek=Aggiungi 'Apri con PDFGeek' al menu clic destro per i file PDF
@@ -15,7 +16,7 @@ italian.Shortcuts=Collegamenti:
 italian.Integrations=Integrazioni:
 italian.AppWebSite=Sito web {#AppName}
 italian.CreateQuickLaunchIcon=Crea collegamento programma nella &barra 'Avvio veloce'
-italian.NameAndVersion=%1 %2
-italian.LaunchProgram=Esegui %1
+italian.NameAndVersion={#AppName} {#AppVersion}
+italian.LaunchProgram=Esegui {#AppName}
 italian.AdditionalIcons=Collegamenti:
 
